@@ -10,7 +10,7 @@ set -euo pipefail
 CONTAINER_DIR="/usr/etc/containers"
 ETC_CONTAINER_DIR="/etc/containers"
 MODULE_DIRECTORY="${MODULE_DIRECTORY:-"/tmp/modules"}"
-IMAGE_REGISTRY_TITLE=$(echo "$IMAGE_REGISTRY" | cut -d'/' -f2-)
+IMAGE_REGISTRY_TITLE="underscorejoser"
 
 echo "Setting up container signing in policy.json and cosign.yaml for $IMAGE_NAME"
 echo "Registry to write: $IMAGE_REGISTRY"
@@ -50,10 +50,7 @@ jq --arg image_registry "${IMAGE_REGISTRY}" \
     { $image_registry: [
         {
             "type": "sigstoreSigned",
-            "keyPaths": [
-              ("/usr/etc/pki/containers/" + $image_registry_title + ".pub"),
-              ("/usr/etc/pki/containers/" + $image_registry_title + "-2025.pub")
-            ],
+            "keyPath": "/usr/etc/pki/containers/" + $image_registry_title + ".pub",
             "signedIdentity": {
                 "type": "matchRepository"
             }

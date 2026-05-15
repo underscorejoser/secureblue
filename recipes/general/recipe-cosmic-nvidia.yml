@@ -6,7 +6,7 @@ name: cosmic-nvidia-hardened
 
 description: "Cosmic with nvidia, hardened"
 
-base-image: ghcr.io/secureblue/cosmic-main-hardened
+base-image: ghcr.io/underscorejoser/cosmic-main-hardened
 
 image-version: latest
 

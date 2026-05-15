@@ -120,6 +120,15 @@
           }
         }
       ],
+      "ghcr.io/secureblue": [
+        {
+          "type": "sigstoreSigned",
+          "keyPath": "/usr/etc/pki/containers/secureblue.pub",
+          "signedIdentity": {
+            "type": "matchRepository"
+          }
+        }
+      ],
       "": [
         {
           "type": "reject"

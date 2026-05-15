@@ -25,7 +25,7 @@ echo "Verifying build provenance for ${image_ref}..."
 image_tag="${image_ref##*:}"
 case "${image_tag}" in
     latest)
-        branch='live'
+        branch='personal'
         ;;
     br-*)
         branch="${image_tag#br-}"

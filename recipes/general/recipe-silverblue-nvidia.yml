@@ -6,7 +6,7 @@ name: silverblue-nvidia-hardened
 
 description: "Silverblue with nvidia, hardened"
 
-base-image: ghcr.io/secureblue/silverblue-main-hardened
+base-image: ghcr.io/underscorejoser/silverblue-main-hardened
 
 image-version: latest
 
