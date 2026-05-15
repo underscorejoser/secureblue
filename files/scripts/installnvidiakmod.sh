@@ -10,12 +10,15 @@ set -euo pipefail
 mkdir -p /var/tmp
 chmod 1777 /var/tmp
 
-if [[ "$IMAGE_NAME" == *open* ]]; then
-    nvidia_repo='fedora-nvidia'
+if [[ "${IMAGE_NAME}" == *open* ]]; then
+    packages=('nvidia-kmod-common' 'nvidia-modprobe' 'akmod-nvidia')
+    nvidia_kmod='nvidia'
 else
-    nvidia_repo='fedora-nvidia-580'
+    packages=('nvidia-580xx-kmod-common' 'nvidia-modprobe-580xx' 'akmod-nvidia-580xx')
+    nvidia_kmod='nvidia-580xx'
 fi
 
+# shellcheck disable=SC2312
 dnf install -y --setopt=install_weak_deps=False "kernel-devel-matched-$(rpm -q 'kernel' --queryformat '%{VERSION}')"
 
 dnf install -y --setopt=install_weak_deps=False akmods gcc-c++
@@ -24,26 +27,24 @@ dnf install -y --setopt=install_weak_deps=False akmods gcc-c++
 sed -i.backup -e '/if \[\[ -w \/var \]\] ; then/,/fi/d' /usr/sbin/akmodsbuild
 
 dnf install -y --setopt=install_weak_deps=False \
-    --enable-repo="${nvidia_repo}" \
+    --enable-repo='terra-nvidia' \
     --disable-repo='fedora-multimedia' \
-    nvidia-kmod-common nvidia-modprobe akmod-nvidia
+    "${packages[@]}"
 
-KERNEL_VERSION="$(rpm -q "kernel" --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')"
+KERNEL_VERSION="$(rpm -q 'kernel' --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')"
 
 echo "Installing kmod..."
-akmods --force --kernels "${KERNEL_VERSION}" --kmod "nvidia"
+akmods --force --kernels "${KERNEL_VERSION}" --kmod "${nvidia_kmod}"
 
 mv /usr/sbin/akmodsbuild.backup /usr/sbin/akmodsbuild
 
-modinfo /usr/lib/modules/"${KERNEL_VERSION}"/extra/nvidia/nvidia{,-drm,-modeset,-peermem,-uvm}.ko.xz > /dev/null || \
-    { cat /var/cache/akmods/nvidia/*.failed.log && exit 1; }
+modinfo /usr/lib/modules/"${KERNEL_VERSION}"/extra/"${nvidia_kmod}"/nvidia{,-drm,-modeset,-peermem,-uvm}.ko.xz > /dev/null || \
+    { cat /var/cache/akmods/"${nvidia_kmod}"/*.failed.log && exit 1; }
 
 # View license information
-modinfo -l /usr/lib/modules/"${KERNEL_VERSION}"/extra/nvidia/nvidia{,-drm,-modeset,-peermem,-uvm}.ko.xz
+modinfo -l /usr/lib/modules/"${KERNEL_VERSION}"/extra/"${nvidia_kmod}"/nvidia{,-drm,-modeset,-peermem,-uvm}.ko.xz
 
-./signmodules.sh "nvidia"
+./signmodules.sh "${nvidia_kmod}"
 
-systemctl disable akmods-keygen@akmods-keygen.service
-systemctl mask akmods-keygen@akmods-keygen.service
-systemctl disable akmods-keygen.target
-systemctl mask akmods-keygen.target
+systemctl disable akmods-keygen@akmods-keygen.service akmods-keygen.target
+systemctl mask akmods-keygen@akmods-keygen.service akmods-keygen.target

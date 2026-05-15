@@ -6,43 +6,36 @@
 
 set -euo pipefail
 
-
-nvidia_packages_list=('libva-nvidia-driver' 'nvidia-container-toolkit')
-
-is_desktop="false"
-[[ "$IMAGE_NAME" != *"securecore"* && "$IMAGE_NAME" != *"iot"* ]] && is_desktop="true"
-nvidia_packages_list+=(
-  'nvidia-driver-cuda'
+declare -a nvidia_packages_list=('libva-nvidia-driver' 'nvidia-container-toolkit')
+declare -a nvidia_desktop_packages_list+=(
+    'libnvidia-fbc' 'nvidia-driver' 'nvidia-modprobe' 'nvidia-persistenced' 'nvidia-settings'
 )
-if [[ "$is_desktop" == "true" ]]; then
-    nvidia_packages_list+=(
-        'libnvidia-fbc'
-        'nvidia-driver'
-        'nvidia-modprobe'
-        'nvidia-persistenced'
-        'nvidia-settings'
-    )
-fi
 
-if [[ "$IMAGE_NAME" == *open* ]]; then
-    nvidia_repo='fedora-nvidia'
+is_desktop='false'
+[[ "${IMAGE_NAME}" != *'securecore'* && "${IMAGE_NAME}" != *'iot'* ]] && is_desktop='true'
+
+declare -a packages_to_install=("${nvidia_packages_list[@]}")
+if [[ "${IMAGE_NAME}" == *open* ]]; then
+    packages_to_install+=('nvidia-driver-cuda')
+    [[ "${is_desktop}" == 'true' ]] && packages_to_install+=("${nvidia_desktop_packages_list[@]}")
 else
-    nvidia_repo='fedora-nvidia-580'
+    packages_to_install+=('nvidia-driver-580xx-cuda')
+    [[ "${is_desktop}" == 'true' ]] && packages_to_install+=("${nvidia_desktop_packages_list[@]/%/-580xx}")
 fi
 
 dnf install -y --setopt=install_weak_deps=False \
-    --enable-repo="${nvidia_repo}" \
+    --enable-repo='terra-nvidia' \
     --enable-repo='nvidia-container-toolkit' \
     --disable-repo='fedora-multimedia' \
-    "${nvidia_packages_list[@]}"
+    "${packages_to_install[@]}"
 
 kmod_version=$(rpm -qa | grep akmod-nvidia | awk -F':' '{print $(NF)}' | awk -F'-' '{print $(NF-1)}')
-negativo_version=$(rpm -qa | grep nvidia-modprobe | awk -F':' '{print $(NF)}' | awk -F'-' '{print $(NF-1)}')
+terra_version=$(rpm -qa | grep nvidia-modprobe | awk -F':' '{print $(NF)}' | awk -F'-' '{print $(NF-1)}')
 
 echo "kmod_version: ${kmod_version}"
-echo "negativo_version: ${negativo_version}"
-if [[ "$kmod_version" != "$negativo_version" ]]; then
-    echo "Version mismatch!"
+echo "terra_version: ${terra_version}"
+if [[ "${kmod_version}" != "${terra_version}" ]]; then
+    echo 'Version mismatch!'
     exit 1
 fi
 
