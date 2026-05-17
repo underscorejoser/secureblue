@@ -6,26 +6,30 @@
 
 set -euo pipefail
 
-declare -a nvidia_desktop_packages_list+=(
-    'libnvidia-fbc' 'nvidia-driver' 'nvidia-modprobe' 'nvidia-persistenced' 'nvidia-settings'
+declare -a desktop_packages+=(
+    'libnvidia-fbc' 'nvidia-persistenced' 'nvidia-settings' 'nvidia-libXNVCtrl'
 )
 
 is_desktop='false'
 [[ "${IMAGE_NAME}" != *'securecore'* && "${IMAGE_NAME}" != *'iot'* ]] && is_desktop='true'
 
-declare -a nvidia_packages_list=('libva-nvidia-driver')
+declare -a packages=('libva-nvidia-driver')
 if [[ "${IMAGE_NAME}" == *open* ]]; then
-    nvidia_packages_list+=('nvidia-driver-cuda')
-    [[ "${is_desktop}" == 'true' ]] && nvidia_packages_list+=("${nvidia_desktop_packages_list[@]}")
+    packages+=('nvidia-driver-cuda')
+    [[ "${is_desktop}" == 'true' ]] && packages+=("${desktop_packages[@]}")
 else
-    nvidia_packages_list+=('nvidia-driver-580xx-cuda')
-    [[ "${is_desktop}" == 'true' ]] && nvidia_packages_list+=("${nvidia_desktop_packages_list[@]/%/-580xx}")
+    packages+=('nvidia-driver-580xx-cuda')
+    [[ "${is_desktop}" == 'true' ]] && packages+=("${desktop_packages[@]/%/-580xx}")
 fi
+
+source "$(dirname "$0")"/terra.sh
+
+declare -ar rpms=( "$(download_and_verify terra-nvidia "${packages[@]}")" )
 
 dnf install -y --setopt=install_weak_deps=False \
     --enable-repo='terra-nvidia' \
     --disable-repo='fedora-multimedia' \
-    "${nvidia_packages_list[@]}"
+    "${rpms[@]}"
 
 dnf install -y --setopt=install_weak_deps=False --enable-repo='nvidia-container-toolkit' nvidia-container-toolkit
 

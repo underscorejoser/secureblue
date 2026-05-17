@@ -63,17 +63,10 @@
         "gpgFingerprint": "26B4463ED8F313BC7E3FBDF9D9223AF0F47B3E41"
     },
     {
-        "localRepo": "files/system/nvidia/etc/yum.repos.d/fedora-nvidia-580.repo",
-        "repoSource": "https://negativo17.org/repos/fedora-nvidia-580.repo",
-        "localGpgKey": "files/system/usr/share/pki/rpm-gpg/RPM-GPG-KEY-slaanesh.gpg",
-        "remoteGpgKey": "https://negativo17.org/repos/RPM-GPG-KEY-slaanesh",
-        "gpgFingerprint": "0C5D0F470484AE2FC40A9B6597F3008993E8909B"
-    },
-    {
-        "localRepo": "files/system/nvidia/etc/yum.repos.d/negativo17-fedora-nvidia.repo",
-        "repoSource": "https://negativo17.org/repos/fedora-nvidia.repo",
-        "localGpgKey": "files/system/usr/share/pki/rpm-gpg/RPM-GPG-KEY-slaanesh.gpg",
-        "remoteGpgKey": "https://negativo17.org/repos/RPM-GPG-KEY-slaanesh",
+        "localRepo": "files/system/nvidia/etc/yum.repos.d/terra-nvidia.repo",
+        "repoSource": "https://raw.githubusercontent.com/terrapkg/packages/refs/heads/frawhide/anda/terra/release/terra-nvidia.repo",
+        "localGpgKey": "files/system/nvidia/usr/share/pki/rpm-gpg/RPM-GPG-KEY-terra44-nvidia",
+        "remoteGpgKey": "https://raw.githubusercontent.com/terrapkg/packages/refs/heads/frawhide/anda/terra/gpg-keys/RPM-GPG-KEY-terra44-nvidia-source",
         "gpgFingerprint": "0C5D0F470484AE2FC40A9B6597F3008993E8909B"
     },
     {

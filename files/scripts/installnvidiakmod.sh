@@ -10,18 +10,32 @@ set -euo pipefail
 mkdir -p /var/tmp
 chmod 1777 /var/tmp
 
+KERNEL_VERSION="$(rpm -q 'kernel' --queryformat '%{VERSION}')"
+KERNEL_RELEASE="$(rpm -q 'kernel' --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')"
+
+# shellcheck disable=SC2312
+dnf install -y --setopt=install_weak_deps=False "kernel-devel-matched-${KERNEL_VERSION}"
+dnf install -y --setopt=install_weak_deps=False akmods gcc-c++
+
 if [[ "${IMAGE_NAME}" == *open* ]]; then
-    packages=('nvidia-kmod-common' 'nvidia-modprobe' 'akmod-nvidia')
+    packages=(
+        'akmod-nvidia' 'nvidia-kmod-common' 'nvidia-modprobe'
+        'libnvidia-cfg' 'libnvidia-gpucomp' 'libnvidia-ml'
+        'nvidia-driver' 'nvidia-driver-cuda-libs' 'nvidia-driver-libs'
+    )
     nvidia_kmod='nvidia'
 else
-    packages=('nvidia-580xx-kmod-common' 'nvidia-modprobe-580xx' 'akmod-nvidia-580xx')
+    packages=(
+        'akmod-nvidia-580xx' 'nvidia-580xx-kmod-common' 'nvidia-modprobe-580xx'
+        'libnvidia-cfg-580xx' 'libnvidia-gpucomp-580xx' 'libnvidia-ml-580xx'
+        'nvidia-driver-580xx' 'nvidia-driver-580xx-cuda-libs' 'nvidia-driver-580xx-libs'
+    )
     nvidia_kmod='nvidia-580xx'
 fi
 
-# shellcheck disable=SC2312
-dnf install -y --setopt=install_weak_deps=False "kernel-devel-matched-$(rpm -q 'kernel' --queryformat '%{VERSION}')"
+source "$(dirname "$0")"/terra.sh
 
-dnf install -y --setopt=install_weak_deps=False akmods gcc-c++
+declare -ar rpms=( "$(download_and_verify terra-nvidia "${packages[@]}")" )
 
 # TODO remove this when fixed upstream
 sed -i.backup -e '/if \[\[ -w \/var \]\] ; then/,/fi/d' /usr/sbin/akmodsbuild
@@ -29,20 +43,18 @@ sed -i.backup -e '/if \[\[ -w \/var \]\] ; then/,/fi/d' /usr/sbin/akmodsbuild
 dnf install -y --setopt=install_weak_deps=False \
     --enable-repo='terra-nvidia' \
     --disable-repo='fedora-multimedia' \
-    "${packages[@]}"
-
-KERNEL_VERSION="$(rpm -q 'kernel' --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')"
+    "${rpms[@]}"
 
 echo "Installing kmod..."
-akmods --force --kernels "${KERNEL_VERSION}" --kmod "${nvidia_kmod}"
+akmods --force --kernels "${KERNEL_RELEASE}" --kmod "${nvidia_kmod}"
 
 mv /usr/sbin/akmodsbuild.backup /usr/sbin/akmodsbuild
 
-modinfo /usr/lib/modules/"${KERNEL_VERSION}"/extra/"${nvidia_kmod}"/nvidia{,-drm,-modeset,-peermem,-uvm}.ko.xz > /dev/null || \
+modinfo /usr/lib/modules/"${KERNEL_RELEASE}"/extra/"${nvidia_kmod}"/nvidia{,-drm,-modeset,-peermem,-uvm}.ko.xz > /dev/null || \
     { cat /var/cache/akmods/"${nvidia_kmod}"/*.failed.log && exit 1; }
 
 # View license information
-modinfo -l /usr/lib/modules/"${KERNEL_VERSION}"/extra/"${nvidia_kmod}"/nvidia{,-drm,-modeset,-peermem,-uvm}.ko.xz
+modinfo -l /usr/lib/modules/"${KERNEL_RELEASE}"/extra/"${nvidia_kmod}"/nvidia{,-drm,-modeset,-peermem,-uvm}.ko.xz
 
 ./signmodules.sh "${nvidia_kmod}"
 
