@@ -43,7 +43,7 @@ sed -i.backup -e '/if \[\[ -w \/var \]\] ; then/,/fi/d' /usr/sbin/akmodsbuild
 dnf install -y --setopt=install_weak_deps=False \
     --enable-repo='terra-nvidia' \
     --disable-repo='fedora-multimedia' \
-    "${rpms[@]}"
+    "${rpms[*]}"
 
 echo "Installing kmod..."
 akmods --force --kernels "${KERNEL_RELEASE}" --kmod "${nvidia_kmod}"
