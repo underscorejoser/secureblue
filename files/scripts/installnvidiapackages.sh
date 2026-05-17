@@ -30,7 +30,7 @@ IFS=" " read -r -a rpms <<< "$(download_and_verify terra-nvidia "${packages[@]}"
 dnf install -y --setopt=install_weak_deps=False \
     --enable-repo='terra-nvidia' \
     --disable-repo='fedora-multimedia' \
-    "${rpms[*]}"
+    "${rpms[@]}"
 
 dnf install -y --setopt=install_weak_deps=False --enable-repo='nvidia-container-toolkit' nvidia-container-toolkit
 
