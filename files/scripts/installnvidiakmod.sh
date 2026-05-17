@@ -35,7 +35,8 @@ fi
 
 source "$(dirname "$0")"/terra.sh
 
-declare -ar rpms=( "$(download_and_verify terra-nvidia "${packages[@]}")" )
+# shellcheck disable=SC2312
+IFS=" " read -r -a rpms <<< "$(download_and_verify terra-nvidia "${packages[@]}")"
 
 # TODO remove this when fixed upstream
 sed -i.backup -e '/if \[\[ -w \/var \]\] ; then/,/fi/d' /usr/sbin/akmodsbuild

@@ -24,7 +24,8 @@ fi
 
 source "$(dirname "$0")"/terra.sh
 
-declare -ar rpms=( "$(download_and_verify terra-nvidia "${packages[@]}")" )
+# shellcheck disable=SC2312
+IFS=" " read -r -a rpms <<< "$(download_and_verify terra-nvidia "${packages[@]}")"
 
 dnf install -y --setopt=install_weak_deps=False \
     --enable-repo='terra-nvidia' \
