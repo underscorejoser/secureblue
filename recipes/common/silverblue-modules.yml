@@ -39,6 +39,7 @@ modules:
     source: ghcr.io/blue-build/modules@sha256:0b74310a559451a6faf9b33f583855dfe5b2cdbe5d90603f2869dd4867c9b485
     scripts:
       - removedkmshelper.sh
+      - removeqt5.sh
   - type: files
     source: ghcr.io/blue-build/modules@sha256:0b74310a559451a6faf9b33f583855dfe5b2cdbe5d90603f2869dd4867c9b485
     files:
